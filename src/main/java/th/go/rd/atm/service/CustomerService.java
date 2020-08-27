@@ -2,20 +2,17 @@ package th.go.rd.atm.service;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import th.go.rd.atm.data.CustomerRepository;
 import th.go.rd.atm.model.Customer;
 
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 
 @Service
 public class CustomerService {
-//    private ArrayList<Customer> customerList;
-//    private List<Customer> customerList;
+
     private CustomerRepository repository;
 
     public CustomerService(CustomerRepository repository) {
@@ -23,22 +20,13 @@ public class CustomerService {
     }
 
 
-//    @PostConstruct
-//    public void postConstruct() {
-//        this.customerList = new ArrayList<>();
-//    }
-
     public Customer findCustomer(int id) {
-//        for (Customer customer : customerList) {
-//            if (customer.getId() == id)
-//                return customer;
-//        }
         try {
-            return repository.findById(id);
-        } catch (EmptyResultDataAccessException e) {
+            return repository.findById(id).get();
+        } catch (NoSuchElementException e) {
             return null;
         }
-//        return null;
+
     }
     public Customer checkPin(Customer inputCustomer) {
         // 1. หา customer ที่มี id ตรงกับพารามิเตอร์
@@ -59,13 +47,10 @@ public class CustomerService {
         // .... hash pin ....
         String hashPin = hash(customer.getPin());
         customer.setPin(hashPin);
-//        customerList.add(customer);
         repository.save(customer);
     }
 
     public List<Customer> getCustomers() {
-//        return new ArrayList<>(this.customerList);
-
         return repository.findAll();
     }
 
@@ -73,6 +58,5 @@ public class CustomerService {
         String salt = BCrypt.gensalt(12);
         return BCrypt.hashpw(pin, salt);
     }
-
 
 }
