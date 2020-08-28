@@ -7,15 +7,19 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import th.go.rd.atm.model.Customer;
+import th.go.rd.atm.service.BankAccountService;
 import th.go.rd.atm.service.CustomerService;
 
 @Controller
 @RequestMapping("/login")
 public class LoginController {
-    private CustomerService customerService;
 
-    public LoginController(CustomerService customerService) {
+    private CustomerService customerService;
+    private BankAccountService bankAccountService;
+
+    public LoginController(CustomerService customerService,BankAccountService bankAccountService) {
         this.customerService = customerService;
+        this.bankAccountService = bankAccountService;
     }
 
     @GetMapping
@@ -26,16 +30,23 @@ public class LoginController {
     public String login(@ModelAttribute Customer customer, Model model) {
         // 1. เอา id กับ pin ไปเช็คกับข้อมูล customer ที่มีอยู่ ว่าตรงกันบ้างไหม
         Customer matchingCustomer = customerService.checkPin(customer);
-
+        Customer storedCustomer = customerService.checkPin(customer);
         // 2. ถ้าตรง ส่งข้อมูล customer กลับไปแสดงผล
         if (matchingCustomer != null) {
-            model.addAttribute("greeting",
-                    "Welcome, " + matchingCustomer.getName());
+            customer.setPin("");
+            customer.setName(storedCustomer.getName());
+
+            model.addAttribute("customer", customer);
+            model.addAttribute("customermessage",customer.getName() + " Bank Accounts");
+            model.addAttribute("bankaccounts", bankAccountService.getBankAccount(customer.getId()));
+
+            return "bankaccount";
         } else {
             // 3. ถ้าไม่ตรง แจ้งว่าไม่มีข้อมูล customer นี้
             model.addAttribute("greeting", "Can't find customer");
+            return "home";
         }
-        return "home";
+
     }
 
 }
